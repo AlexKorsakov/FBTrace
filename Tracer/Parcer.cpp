@@ -12,60 +12,51 @@ using namespace std;
 
 Parser::Parser(string input)
 {
-	filename = input;
-	cursor = 0;
-	events_parsed = 0;
-	isReading = false;
-
-	 R_DATE = "([0-9]{4}-(0[1-9]|1[012])-(0[1-9]|1[0-9]|2[0-9]|3[01]))";
-	 R_TIME = "([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9].[0-9]{4}";
-	 R_TIMESTAMP = R_DATE + "T" + R_TIME;
-
-	 R_STATEMENT_N = "Statement [0-9]{2,}:";
-	 R_PLAN = "PLAN+(+)";
+	this->filename = input;
+	this->cursor = 0;
+	this->events_parsed = 0;
+	this->isReading = false;
 }
 
 void Parser::ParseEvent(mutex &m) {
-	events_parsed = 0;
-	isReading = true;
+	this->events_parsed = 0;
+	this->isReading = true;
 	this_thread::sleep_for(chrono::milliseconds(100));
 	while (true) {
 		cout << "ololo\r\n";
-		if (events_parsed >= cursor) {
+		if (this->events_parsed >= this->cursor) {
 			this_thread::sleep_for(chrono::milliseconds(100));
 			m.lock();
-			events_parsed = cursor;
+			this->events_parsed = this->cursor;
 			m.unlock();
 		}
 		else {
-			for (int i = cursor - events_parsed;
-				i <= cursor; events_parsed++) {
+			for (int i = this->cursor - this->events_parsed;
+				i <= this->cursor; this->events_parsed++) {
 				//парсим событие далее
 
 			}
 		}
-		if (!isReading)
+		if (!this->isReading)
 			break;
 	}
 }
-
-//Читает лог-файл
 void Parser::ReadLog(mutex &m) {
 	regex regex_timestamp(R_DATE);
-	
+
 	vector<string> lines_of_event;
 	bool read_event = false;
 
 	Event ev;
-	ifstream file(filename);
-	isReading = true;
+	ifstream file(this->filename);
+	this->isReading = true;
 	int i = 0;
 	for (string line; getline(file, line); i++) {
 		smatch match;
 
-		if (regex_search(line, match, regex_timestamp)) {			
+		if (regex_search(line, match, regex_timestamp)) {
 			ev.Lines = lines_of_event;
-			Events.push_back(ev);
+			this->Events.push_back(ev);
 			list<string> words = GetListWords(line);
 			vector<string> str_array = GetStringVectorFromList(words);
 			ev = Event(str_array);
@@ -78,19 +69,19 @@ void Parser::ReadLog(mutex &m) {
 				/*
 				regex regex_statement(R_STATEMENT_N);
 				if(regex_search(line, match, regex_statement)) {
-					//cout << line;
+				//cout << line;
 				}
 				*/
 				lines_of_event.push_back(line);
 			}
 		}
 		m.lock();
-		cursor = i;
+		this->cursor = i;
 		m.unlock();
 	}
 	cout << "Reading is done...\r\n";
 	file.close();
-	isReading = false;
+	this->isReading = false;
 }
 
 //Разбивает строку на слова, возвращает список string
