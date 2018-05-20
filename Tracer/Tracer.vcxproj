@@ -148,6 +148,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Event.h" />
+    <ClInclude Include="EventInfo.h" />
     <ClInclude Include="Parser.h" />
     <ClInclude Include="Query.h" />
     <ClInclude Include="stdafx.h" />
@@ -155,6 +156,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Event.cpp" />
+    <ClCompile Include="EventInfo.cpp" />
     <ClCompile Include="Parcer.cpp" />
     <ClCompile Include="Query.cpp" />
     <ClCompile Include="stdafx.cpp">

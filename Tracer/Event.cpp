@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Event.h"
+#include <iostream>
 
 Event::Event() {
 
@@ -7,7 +8,17 @@ Event::Event() {
 
 Event::Event(vector<string> &event_string)
 {
-	this->Type = event_string[2];
+	int event_string_size = event_string.size();
+	if(event_string_size == 3)
+		this->Type = event_string[2];
+	else if(event_string_size == 4)	//FAILED PREPARE_STATEMENT
+		this->Type = event_string[2] + "_" + event_string[3];
+	else if(event_string_size == 5)	//ERROR AT JStatement::prepare
+		this->Type = event_string[2] + "_" + event_string[3] + "_" + event_string[4];
+	else {
+		cout << "ex";
+	}
+
 	string temp = event_string[1];
 	temp.erase(temp.begin());
 	temp.erase(temp.end() - 1);

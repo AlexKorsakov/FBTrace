@@ -3,28 +3,32 @@
 #include <list>
 #include <vector> 
 #include "Event.h"
+#include <mutex>
 
 using namespace std;
 
-class Parser
+static class Parser
 {
-	public:
-		vector <Event> Events;
+public:
+	static vector <Event> Events;
+	static bool isReading;
+	static string filename;
+	static unsigned int cursor;
+	static unsigned int events_parsed;
+	//int string_count;
 
-		string filename;
-		int cursor;
-		int string_count;
+	Parser(string input);
+	static void ParseEvent(mutex &m);
+	static void ReadLog(mutex &m);
+	static list<string> GetListWords(string input);
+	static vector<string> GetStringVectorFromList(list<string> input);
+	~Parser();
+	//регулярки для парсинга лога
+	static string R_DATE;
+	static string R_TIME;
+	static string R_TIMESTAMP;
 
-		Parser(string input);
-		void Read();
-		list<string> GetListWords(string input);
-		vector<string> GetStringVectorFromList(list<string> input);
-		~Parser();
-	private:
-		//регулярки для парсинга лога
-		string R_DATE = "([0-9]{4}-(0[1-9]|1[012])-(0[1-9]|1[0-9]|2[0-9]|3[01]))";
-		string R_TIME = "([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9].[0-9]{4}";
-		string R_TIMESTAMP = R_DATE + "T" + R_TIME;
-		string R_STATEMENT_N = "Statement [0-9]{2,}:";
+	static string R_STATEMENT_N;
+	static string R_PLAN;
 };
 

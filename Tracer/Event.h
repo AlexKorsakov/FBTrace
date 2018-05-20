@@ -2,6 +2,7 @@
 #include <string>
 #include <list>
 #include <vector> 
+#include "EventInfo.h"
 
 using namespace std;
 
@@ -14,6 +15,7 @@ public:
 	string Timestamp;
 	vector <string> Lines;
 
+	EventInfo Info;
 
 	Event();
 	Event(vector<string> &event_string);
