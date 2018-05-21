@@ -147,6 +147,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Analysis.h" />
+    <ClInclude Include="csvfile.h" />
     <ClInclude Include="Event.h" />
     <ClInclude Include="EventInfo.h" />
     <ClInclude Include="Parser.h" />
@@ -155,6 +157,8 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Analysis.cpp" />
+    <ClCompile Include="csvfile.cpp" />
     <ClCompile Include="Event.cpp" />
     <ClCompile Include="EventInfo.cpp" />
     <ClCompile Include="Parcer.cpp" />

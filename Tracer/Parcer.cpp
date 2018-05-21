@@ -26,7 +26,7 @@ void Parser::ParseEvent(mutex &m) {
 		m.lock();
 		int capacity = (int)this->Events.size();
 		m.unlock();
-		if (this->events_parsed >= capacity) {
+		if (this->events_parsed >= capacity-1) {
 			this_thread::sleep_for(chrono::milliseconds(50));
 			//m.lock();
 			//this->events_parsed = capacity;
@@ -96,16 +96,14 @@ void Parser::ParseEvent(mutex &m) {
 				q.SetQueryText(DeleteParamsFromQuery(q.Text));
 				ev_info.query = q;
 				this->Events[i].Info = ev_info;
-//				this_thread::sleep_for(chrono::milliseconds(50));
+				//this_thread::sleep_for(chrono::milliseconds(50));
 				m.lock();
 				cout << "Найдено: строк - " << this->cursor << " | событий - " << this->Events.size() <<" | Обработано событий - " << this->events_parsed << "\r\n";
 				m.unlock();
 				this->events_parsed++;
-				ev_info.~EventInfo();
-				q.~Query();
 			}
 		}
-		if (!this->isReading && this->events_parsed >= capacity)
+		if (!this->isReading && this->events_parsed >= capacity-1)
 			break;
 	}
 }
@@ -135,16 +133,13 @@ void Parser::ReadLog(mutex &m) {
 		else {
 			bool line_is_slash_t = (line[0] == '\t' && line.size() == 1);
 			bool line_is_empty = (line == "" && line.size() == 0);
-			if (!(line_is_slash_t xor line_is_empty)) {
-				
+			if (!(line_is_slash_t xor line_is_empty)) {				
 				/*
 				regex regex_statement(R_PLAN);
 				if (regex_search(line, match, regex_statement)) {
 					cout << line;
 				}
 				*/
-
-
 				lines_of_event.push_back(line);
 				m.lock();
 				cout << "Найдено: строк - " << this->cursor << " | событий - " << this->Events.size() << " | Обработано событий - " << this->events_parsed << "\r\n";
@@ -194,16 +189,27 @@ vector< string > Parser::GetStringVectorFromList(list<string> input) {
 //Убирает параметры из запросов, нужно для их сравнения
 string Parser::DeleteParamsFromQuery(string input)
 {
+	if (input == "")
+		return "";
 	string newstring = "";
 	bool writyng = true;
-	for (int i = 0; i < input.length(); i++) {
+	for (int i = 0; i < input.length()-1; i++) {
 		if (input[i] == '\"' || input[i] == '\'' || input[i] == '\\\"' || input[i] == '\\\'') {
 			writyng = !writyng;
 			continue;
 		}
+		if (isdigit(input[i]))	//убираем все цифры из запроса. нужно чтобы для агрегации одинаковых запросов с разными параметрми
+			continue;
 		if(writyng)
 			newstring += input[i];
 	}
+	/*
+	smatch match;
+	regex regex_statement1(".*=\s*\d+.*");
+	if (regex_search(newstring, match, regex_statement1)) {
+		newstring = newstring;
+	}
+	*/
 	return newstring;
 }
 
