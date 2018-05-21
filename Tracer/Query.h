@@ -6,12 +6,17 @@ using namespace std;
 class Query
 {
 public:
-	unsigned short int Statement_Num;
 	string Text;
 	string Plan;
+	unsigned int TextHash;
+	unsigned short int Statement_Num;
 	unsigned short int Run_Time;
 
+	void SetQueryText(const string& str);
 	Query();
 	~Query();
+private:
+	unsigned int RSHash(const string& str);
+	unsigned int JSHash(const string& str);
 };
 

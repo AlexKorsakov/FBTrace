@@ -20,24 +20,92 @@ Parser::Parser(string input)
 
 void Parser::ParseEvent(mutex &m) {
 	this->events_parsed = 0;
-	this->isReading = true;
 	this_thread::sleep_for(chrono::milliseconds(100));
+	EventInfo ev_info;
 	while (true) {
-		cout << "ololo\r\n";
-		if (this->events_parsed >= this->cursor) {
-			this_thread::sleep_for(chrono::milliseconds(100));
-			m.lock();
-			this->events_parsed = this->cursor;
-			m.unlock();
+		m.lock();
+		int capacity = (int)this->Events.size();
+		m.unlock();
+		if (this->events_parsed >= capacity) {
+			this_thread::sleep_for(chrono::milliseconds(50));
+			//m.lock();
+			//this->events_parsed = capacity;
+			//m.unlock();
 		}
 		else {
-			for (int i = this->cursor - this->events_parsed;
-				i <= this->cursor; this->events_parsed++) {
+			for (int i = this->events_parsed; i < capacity-1; i++) {
 				//парсим событие далее
+				ev_info = EventInfo();
+				Query q = Query();
+				Event ev = this->Events[i];
+				bool is_query_text = false;
+				for (int j = 0; j < ev.Lines.size();j++) {
+					smatch match;
 
+					regex regex_statement1(R_DBINFO);
+					if (regex_search(ev.Lines[j], match, regex_statement1)) {
+						//cout << line;
+						ev_info.DB_Address = string(match.prefix()) + ".FDB";
+						ev_info.DB_Name = GetDBNameFromAddress(ev_info.DB_Address);
+						ev_info.DB_info = match.suffix();
+						continue;
+					}
+
+					regex regex_statement5(R_TR_INFO);
+					if (regex_search(ev.Lines[j], match, regex_statement5)) {
+						ev_info.TR_Name = match[0];
+						string temp = match.suffix();
+						ev_info.TR_info = temp.substr(2, temp.length()-3);
+						continue;
+					}
+
+					regex regex_statement2(R_QUERY_s);
+					if (regex_search(ev.Lines[j], match, regex_statement2)) {
+						is_query_text = true;
+						continue;
+					}
+
+					regex regex_statement3(R_QUERY_e);
+					if (regex_search(ev.Lines[j], match, regex_statement3)) {
+						is_query_text = false;
+						continue;
+					}
+
+					regex regex_statement(R_PLAN);
+					if (regex_search(ev.Lines[j], match, regex_statement)) {
+						q.Plan += match.suffix();
+						continue;
+					}
+
+					regex regex_statement4(R_RUNTIME);
+					if (regex_search(ev.Lines[j], match, regex_statement4)) {
+						string runtime = match[0];
+						string subline = "";
+						for (int k = 0; k < runtime.length()-3; k++) 
+							subline += runtime[k];
+						q.Run_Time = stoi(subline);
+						is_query_text = false;		//для FAILED PREPARE_STATEMENT
+						continue;
+					}
+
+					if (is_query_text) {
+						q.Text += ev.Lines[j] + " ";
+					}
+
+				}
+				q.SetQueryText(DeleteParamsFromQuery(q.Text));
+				ev_info.query = q;
+				this->Events[i].Info = ev_info;
+//				this_thread::sleep_for(chrono::milliseconds(50));
+				m.lock();
+				cout << "Найдено: строк - " << this->cursor << " | событий - " << this->Events.size() <<" | Обработано событий - " << this->events_parsed << "\r\n";
+				m.unlock();
+				this->events_parsed++;
+				ev_info.~EventInfo();
+				q.~Query();
 			}
 		}
-		if (!this->isReading)
+		if (!this->isReading && this->events_parsed >= capacity)
 			break;
 	}
 }
@@ -49,7 +117,9 @@ void Parser::ReadLog(mutex &m) {
 
 	Event ev;
 	ifstream file(this->filename);
+	m.lock();
 	this->isReading = true;
+	m.unlock();
 	int i = 0;
 	for (string line; getline(file, line); i++) {
 		smatch match;
@@ -66,13 +136,19 @@ void Parser::ReadLog(mutex &m) {
 			bool line_is_slash_t = (line[0] == '\t' && line.size() == 1);
 			bool line_is_empty = (line == "" && line.size() == 0);
 			if (!(line_is_slash_t xor line_is_empty)) {
+				
 				/*
-				regex regex_statement(R_STATEMENT_N);
-				if(regex_search(line, match, regex_statement)) {
-				//cout << line;
+				regex regex_statement(R_PLAN);
+				if (regex_search(line, match, regex_statement)) {
+					cout << line;
 				}
 				*/
+
+
 				lines_of_event.push_back(line);
+				m.lock();
+				cout << "Найдено: строк - " << this->cursor << " | событий - " << this->Events.size() << " | Обработано событий - " << this->events_parsed << "\r\n";
+				m.unlock();
 			}
 		}
 		m.lock();
@@ -115,7 +191,34 @@ vector< string > Parser::GetStringVectorFromList(list<string> input) {
 	return str_vect;
 }
 
+//Убирает параметры из запросов, нужно для их сравнения
+string Parser::DeleteParamsFromQuery(string input)
+{
+	string newstring = "";
+	bool writyng = true;
+	for (int i = 0; i < input.length(); i++) {
+		if (input[i] == '\"' || input[i] == '\'' || input[i] == '\\\"' || input[i] == '\\\'') {
+			writyng = !writyng;
+			continue;
+		}
+		if(writyng)
+			newstring += input[i];
+	}
+	return newstring;
+}
 
+//Вытаскивает название БД из адреса БД
+string Parser::GetDBNameFromAddress(string input) {
+	string temp = "";
+	for (int i = input.length()-1; i > 0; --i) {
+		if (input[i] != '\\')
+			temp += input[i];
+		else
+			break;
+	}
+	reverse(temp.begin(), temp.end());
+	return temp;	
+}
 
 Parser::~Parser()
 {
