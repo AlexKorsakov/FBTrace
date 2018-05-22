@@ -43,7 +43,7 @@ Query::Query()
 {
 	this->Text = "";
 	this->Plan = "";
-	this->Run_Time = 0;
+	this->Run_Time = -1;
 	this->Statement_Num = 0;
 	this->TextHash = 0;
 }

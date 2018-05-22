@@ -96,10 +96,7 @@ void Parser::ParseEvent(mutex &m) {
 				q.SetQueryText(DeleteParamsFromQuery(q.Text));
 				ev_info.query = q;
 				this->Events[i].Info = ev_info;
-				//this_thread::sleep_for(chrono::milliseconds(50));
-				m.lock();
-				cout << "Найдено: строк - " << this->cursor << " | событий - " << this->Events.size() <<" | Обработано событий - " << this->events_parsed << "\r\n";
-				m.unlock();
+				CoutParseStats(m);
 				this->events_parsed++;
 			}
 		}
@@ -141,9 +138,7 @@ void Parser::ReadLog(mutex &m) {
 				}
 				*/
 				lines_of_event.push_back(line);
-				m.lock();
-				cout << "Найдено: строк - " << this->cursor << " | событий - " << this->Events.size() << " | Обработано событий - " << this->events_parsed << "\r\n";
-				m.unlock();
+				CoutParseStats(m);
 			}
 		}
 		m.lock();
@@ -224,6 +219,12 @@ string Parser::GetDBNameFromAddress(string input) {
 	}
 	reverse(temp.begin(), temp.end());
 	return temp;	
+}
+
+void Parser::CoutParseStats(mutex &m) {
+	m.lock();
+	cout << "Найдено: строк - " << this->cursor << " | событий - " << this->Events.size() << " | Обработано событий - " << this->events_parsed + 1 << "\r\n";
+	m.unlock();
 }
 
 Parser::~Parser()

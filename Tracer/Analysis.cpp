@@ -11,31 +11,21 @@ void Analysis::AggregateQueryStatistics(vector<Event>& input)
 	vector <Event> SelectedEvents;
 	vector <AggregateQuery> Result;
 
-		//отбор
-		for (int i = 0; i < AllEvents.size(); i++) {
-			if (AllEvents[i].Info.query.TextHash != 0 && AllEvents[i].Info.query.Run_Time >= 0)
-				SelectedEvents.push_back(AllEvents[i]);
-		}
+	//отбор
+	for (int i = 0; i < AllEvents.size(); i++) {
+		if (AllEvents[i].Info.query.TextHash != 0 && AllEvents[i].Info.query.Run_Time >= 0 && AllEvents[i].Type == "PREPARE_STATEMENT")
+			SelectedEvents.push_back(AllEvents[i]);
+	}
 
 	//сортировка
 	SelectedEvents = SortEventsDesc(SelectedEvents);
 	/*
-	for (int i = 0; i < SelectedEvents.size(); i++) {
-		for (int j = 0; j < SelectedEvents.size(); j++) {
-			if (SelectedEvents[i].Info.query.TextHash > SelectedEvents[j].Info.query.TextHash)
-			{
-				Event temp = SelectedEvents[i];
-				SelectedEvents[i] = SelectedEvents[j];
-				SelectedEvents[j] = temp;
-			}
-		}
-	}
-*/
 	cout << "-------------\r\n";
 	for (int i = 0; i < SelectedEvents.size(); i++) {
 		cout << i << " | " << SelectedEvents[i].Info.query.TextHash << "\r\n";
 	}
 	cout << "-------------\r\n";
+	*/
 	
 
 	//совпадения
@@ -50,12 +40,14 @@ void Analysis::AggregateQueryStatistics(vector<Event>& input)
 	}
 
 	//сортировка по совпадениям
+	/*
 	cout << "-------------\r\n";
 	for (auto it = equals_map.begin(); it != equals_map.end(); ++it)
 	{
 		cout << (*it).first << " : " << (*it).second << "\r\n";
 	}
 	cout << "-------------\r\n";
+	*/
 
 	for (auto it = equals_map.begin(); it != equals_map.end(); ++it)
 	{
@@ -72,6 +64,7 @@ void Analysis::AggregateQueryStatistics(vector<Event>& input)
 		Result.push_back(item);
 		cout << (*it).first << " : " << (*it).second << "\r\n";
 	}
+
 
 	//сортировка по совпадениям
 	for (int i = 0; i < Result.size(); i++) {
@@ -93,9 +86,9 @@ void Analysis::AggregateQueryStatistics(vector<Event>& input)
 			csv << Result[i].text << to_string(Result[i].equals) << to_string(Result[i].avg_time) << to_string(Result[i].sum_time) << endrow;
 		}
 	}
-	catch (const std::exception &ex)
+	catch (const exception &ex)
 	{
-		std::cout << "Exception was thrown: " << ex.what() << std::endl;
+		cout << "\r\nОшибка при записи отчета: " << ex.what() << endl;
 	}
 }
 

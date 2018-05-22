@@ -24,6 +24,7 @@ public:
 	vector<string> GetStringVectorFromList(list<string> input);
 	string DeleteParamsFromQuery(string input);
 	string GetDBNameFromAddress(string input);
+	void CoutParseStats(mutex &m);
 	~Parser();
 	//регулярки для парсинга лога
 	string R_DATE = "([0-9]{4}-(0[1-9]|1[012])-(0[1-9]|1[0-9]|2[0-9]|3[01]))";

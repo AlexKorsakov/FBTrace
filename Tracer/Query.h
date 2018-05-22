@@ -10,7 +10,7 @@ public:
 	string Plan;
 	unsigned int TextHash;
 	unsigned short int Statement_Num;
-	unsigned short int Run_Time;
+	short int Run_Time;
 
 	void SetQueryText(const string& str);
 	Query();
